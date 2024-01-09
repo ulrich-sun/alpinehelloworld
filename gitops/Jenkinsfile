@@ -1,1 +1,55 @@
+pipeline {
+    agent any
 
+    environment {
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials')
+        GITHUB_TOKEN = credentials('github-token')
+        DOCKER_USERNAME = ulrichnoumsi
+        DOCKER_IMAGE = gitops
+    }
+
+    stages {
+        stage('Build') {
+            steps {
+                script {
+                    // Build your image
+                    sh 'docker build -t $DOCKER_IMAGE:${BUILD_NUMBER} .'
+                    // Log in to Docker Hub
+                    withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'DOCKERHUB_TOKEN', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD']]) {
+                        sh "docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD"
+                        // Push the image to Docker Hub
+                        sh "docker push $DOCKER_IMAGE:${BUILD_NUMBER}"
+                    }
+                }
+            }
+        }
+        stage('Update Image Tag in Deployment') {
+            steps {
+                script {
+                     withCredentials([usernameColonPassword(credentialsId: 'github', passwordVariable: 'GIT_TOKEN', usernameVariable: 'GIT_USERNAME')]) {
+                    // Connect to GitHub and update the image tag in the deployment file
+                    sh '''
+                        cat deploy.yaml
+                        sed -i '' "s/32/${BUILD_NUMBER}/g" deploy.yaml
+                        cat deploy.yaml
+                        git add deploy.yaml
+                        git commit -m 'Updated the deploy yaml | Jenkins Pipeline'
+                        git remote -v
+                        git push https://${GIT_USERNAME}:${GIT_TOKEN}@https://github.com/ulrich-sun/alpinehelloworld.git HEAD:main
+                        '''                        
+                }
+            }
+        }
+        stage('Deploy with Argo CD') {
+            steps {
+                script {
+                    // Trigger deployment in Argo CD
+                    withCredentials([string(credentialsId: 'argocd-token', variable: 'ARGOCD_TOKEN')]) {
+                        sh "argocd login --username admin --password $ARGOCD_TOKEN 173.249.17.138:30000"
+                        sh "argocd app sync myapp --local"
+                    }
+                }
+            }
+        }
+    }
+}
