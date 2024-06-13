@@ -48,11 +48,7 @@ pipeline {
             }
         }
         stage('Login and Push Image to Docker Hub') {
-            agent {
-                node {
-                    label 'master'
-                }
-            }
+            agent any
             environment {
                 DOCKERHUB_PASSWORD = credentials('dockerhub')
             }
