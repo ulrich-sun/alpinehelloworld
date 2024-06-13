@@ -71,16 +71,17 @@ pipeline {
             steps {
                 script {
                     sshagent(['SSH-KEY']) {
-                        sh '''
-                            echo $DOCKERHUB_PASSWORD_PSW | docker login -u ${ID_DOCKER} --password-stdin
-                            ssh -o StrictHostKeyChecking=no -l ${SSH_USER} ${SSH_HOST} "
-                                docker pull ${ID_DOCKER}/${IMAGE_NAME}:${IMAGE_TAG} &&
-                                docker rm -f ${IMAGE_NAME} || echo 'container does not exist' &&
-                                docker run --name ${IMAGE_NAME} -d -p ${PORT_EXPOSED}:5000 -e PORT=5000 ${ID_DOCKER}/${IMAGE_NAME}:${IMAGE_TAG} &&
-                                sleep 120 &&
-                                echo 'the container is running'
-                            "
-                        '''
+                        // sh '''
+                        //     echo $DOCKERHUB_PASSWORD_PSW | docker login -u ${ID_DOCKER} --password-stdin
+                        //     ssh -o StrictHostKeyChecking=no -l ${SSH_USER} ${SSH_HOST} "
+                        //         docker pull ${ID_DOCKER}/${IMAGE_NAME}:${IMAGE_TAG} &&
+                        //         docker rm -f ${IMAGE_NAME} || echo 'container does not exist' &&
+                        //         docker run --name ${IMAGE_NAME} -d -p ${PORT_EXPOSED}:5000 -e PORT=5000 ${ID_DOCKER}/${IMAGE_NAME}:${IMAGE_TAG} &&
+                        //         sleep 120 &&
+                        //         echo 'the container is running'
+                        //     "
+                        // '''
+                        sh " ssh -o StrictHostKeyChecking=no ${SSH_USER}@${SSH_HOST} echo salut la teams "
                     }
                 }
             }
