@@ -50,7 +50,11 @@ pipeline {
             }
         }
         stage('Login and Push Image on docker hub') {
-            agent any
+            agent {
+                node {
+                    label 'master'
+                }
+            }
             environment {
                 DOCKERHUB_PASSWORD = credentials('dockerhub')
             }
@@ -65,7 +69,7 @@ pipeline {
         }
         stage('Deploy on the server') {
             steps {
-                script {
+                node {
                     sshagent(['SSH-KEY']) {
                         sh '''
                             ssh -o StrictHostKeyChecking=no -l cloud_user 13.40.119.63 curl -k http://
