@@ -55,7 +55,7 @@ pipeline {
             steps {
                 script {
                     sh '''
-                        echo $DOCKERHUB_PASSWORD | docker login -u ${ID_DOCKER} --password-stdin
+                        echo $DOCKERHUB_PASSWORD_PSW | docker login -u ${ID_DOCKER} --password-stdin
                         docker push ${ID_DOCKER}/${IMAGE_NAME}:${IMAGE_TAG}
                     '''
                 }
@@ -72,7 +72,7 @@ pipeline {
                 script {
                     sshagent(['SSH-KEY']) {
                         sh '''
-                            echo $DOCKERHUB_PASSWORD | docker login -u ${ID_DOCKER} --password-stdin
+                            echo $DOCKERHUB_PASSWORD_PSW | docker login -u ${ID_DOCKER} --password-stdin
                             ssh -o StrictHostKeyChecking=no -l ${SSH_USER} ${SSH_HOST} "
                                 docker pull ${ID_DOCKER}/${IMAGE_NAME}:${IMAGE_TAG} &&
                                 docker rm -f ${IMAGE_NAME} || echo 'container does not exist' &&
